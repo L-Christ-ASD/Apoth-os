@@ -1,5 +1,5 @@
 ---
-name: Build and Deploy (Self-Hosted)
+name: Deploy (Self-Hosted)
 
 on:
   push:
@@ -15,7 +15,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Create letsencrypt directory
-        run: mkdir -p /home/student/actions-runner-wpress/_work/wordPress/wordPress/letsencrypt/
+        run: mkdir -p /home/student/actions-runner-wpTest/_work/wordPress/wordPress/letsencrypt/
 
       - name: Show containeur
         run: docker ps -a || true
