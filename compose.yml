@@ -50,7 +50,6 @@ services:
       WORDPRESS_DB_NAME: ${WP_DB_NAME}
     volumes:
       - wordpress_data:/var/www/html
-
     depends_on:
       db:
         condition: service_healthy
@@ -67,19 +66,15 @@ services:
     image: mysql:8.0
     container_name: mysql
     restart: unless-stopped
-
     environment:
       MYSQL_DATABASE: ${MYSQL_DB}
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       MYSQL_ROOT_PASSWORD: ${MYSQL_RT_PASSWORD}
-
     volumes:
       - db_data:/var/lib/mysql
-
     networks:
-      - wp-network
-    
+      - wp-network   
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-u", "${MYSQL_USER}", "-p${MYSQL_PASSWORD}", "-h", "localhost"]
       interval: 20s
@@ -90,21 +85,15 @@ services:
   phpmyadmin:
     container_name: phpmyadmin
     restart: unless-stopped
-
     build:
       context: ./phpmyadmin
       dockerfile: Dockerfile
-    ports:
-      - "82:80"
-
     environment:
       PMA_HOST: db
       MYSQL_ROOT_PASSWORD: ${MYSQL_RT_PASSWORD}
-
     depends_on:    
       db:
         condition: service_healthy
-
     labels:
        - "traefik.enable=true"
        - "traefik.http.routers.blog.entrypoints=websecure"

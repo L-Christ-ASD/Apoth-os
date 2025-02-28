@@ -55,6 +55,5 @@ jobs:
       - name: Check new containeur
         run: |
           docker ps -a || true
-          ls -l ./letsencrypt || true
-          ls /home/student/actions-runner-wpress/_work/wordPress/wordPress/letsencrypt/
+       
 
