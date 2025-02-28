@@ -14,8 +14,8 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Create letsencrypt directory
-        run: mkdir -p /home/student/actions-runner-wpTest/_work/wordPress/wordPress/letsencrypt/
+      #- name: Create letsencrypt directory
+      #  run: mkdir -p /home/student/actions-runner-wpTest/_work/wordPress/wordPress/letsencrypt/
 
       - name: Show containeur
         run: docker ps -a || true
