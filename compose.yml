@@ -1,49 +1,64 @@
 
 services:
-  reverse-proxy:
-    image: traefik:3.2
-    container_name: traefik
-    restart: unless-stopped
+  traefik:
+    image: "traefik:v2.1"
+    container_name: "traefik"
+    hostname: "traefik"
+    env_file:
+      - .env
     ports:
       - "80:80"
-      - "443:443"  # Ajout pour le challenge TLS
-      - "8080:8080" # Tableau de bord de Traefik
-    command:
-      - --api.insecure=true
-      - --providers.docker=true
-      - --entrypoints.web.address=:80
-      - --entrypoints.websecure.address=:443 # Entrypoint HTTPS activé
+      - "443:443"
+      - "8080:8080"
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock # Permet à Traefik d'accéder aux informations des conteneurs Docker
-      - ./letsencrypt:/letsencrypt
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "./traefik.yml:/traefik.yml:ro"
+      - "./acme.json:/acme.json"
+    command:
+      - --api.dashboard=true # Active l'interface du tableau de bord sans authentification
+      - --entrypoints.web.address=:80 # Définit un entrypoint HTTP sur le port 80
+      - --entrypoints.websecure.address=:443
+      - --certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web
+      - --certificatesresolvers.myresolver.acme.email=christ.lumu@oclock.school
+      - --certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json
+      - --providers.docker.defaultRule=Host(`l-christ-asd-server.eddi.cloud`)
+    labels:
+      - "traefik.enable=true"
+      ## DNS CHALLENGE
+      - "traefik.http.routers.traefik.tls.certresolver=lets-encr"
+      - "traefik.http.routers.traefik.tls.domains[0].main=*.l-christ-asd-server.eddi.cloud"
+      - "traefik.http.routers.traefik.tls.domains[0].sans=l-christ-asd-server.eddi.cloud"
+      ## HTTP REDIRECT
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+      - "traefik.http.routers.redirect-https.rule=hostregexp(`{host:.+}`)"
+      - "traefik.http.routers.redirect-https.entrypoints=web"
+      - "traefik.http.routers.redirect-https.middlewares=redirect-to-https"
     networks:
-    - traefik-network
+      - wp-network
+      - traefik-network
     
 
   wordpress:
     image: wordpress:6.7
     container_name: wordpress
+    hostname: wordpress
     restart: unless-stopped
-
     environment:
       WORDPRESS_DB_HOST: ${WP_DB_HOST}
       WORDPRESS_DB_USER: ${WP_DB_USER}
       WORDPRESS_DB_PASSWORD: ${WP_DB_PASSWORD}
       WORDPRESS_DB_NAME: ${WP_DB_NAME}
-    ports:
-      - "81:80"
-
     volumes:
       - wordpress_data:/var/www/html
 
     depends_on:
       db:
         condition: service_healthy
-
     labels:
-      - "traefik.http.routers.wordpress.rule=Host(`wordpress.localhost`)"
-      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
-      - "traefik.http.routers.wordpress.middlewares=redirect-to-https"
+       - "traefik.enable=true"
+       - "traefik.http.routers.blog.entrypoints=websecure"
+       - "traefik.http.routers.blog.rule=Host(`l-christ-asd-server.eddi.cloud`)"
+       - "traefik.http.routers.blog.tls.certresolver=lets-encr"
     networks:
       - wp-network
       - traefik-network
@@ -91,9 +106,10 @@ services:
         condition: service_healthy
 
     labels:
-      - "traefik.http.routers.phpmyadmin.rule=Host(`phpmyadmin.localhost`)"
-      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
-      - "traefik.http.routers.phpmyadmin.middlewares=redirect-to-https"
+       - "traefik.enable=true"
+       - "traefik.http.routers.blog.entrypoints=websecure"
+       - "traefik.http.routers.blog.rule=Host(`l-christ-asd-server.eddi.cloud`)"
+       - "traefik.http.routers.blog.tls.certresolver=lets-encr"
     networks:
       - wp-network
       - traefik-network
@@ -120,10 +136,10 @@ services:
         condition: service_healthy
 
     labels:
-      - "traefik.http.routers.sonarqube.rule=Host(`sonarqube.localhost`)"
-      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
-      - "traefik.http.routers.sonarqube.middlewares=redirect-to-https"
-      
+       - "traefik.enable=true"
+       - "traefik.http.routers.blog.entrypoints=websecure"
+       - "traefik.http.routers.blog.rule=Host(`l-christ-asd-server.eddi.cloud`)"
+       - "traefik.http.routers.blog.tls.certresolver=lets-encr"    
     networks:
       - sonar_network
       - traefik-network
