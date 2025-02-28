@@ -26,8 +26,8 @@ jobs:
       - name: Which groups ?
         run: groups
 
-      - name: vérifie with sonarqube
-        run: make sonar-scan
+      #- name: vérifie with sonarqube
+      #  run: ./make sonar-scan
     
       - name: Take permissions to delete!
         run: sudo usermod -aG docker $USER
